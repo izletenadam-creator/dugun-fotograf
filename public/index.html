@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Düğün anılarınızı paylaşın!">
+  <meta name="theme-color" content="#0a0a1a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>💒 Düğün Anıları</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/guest.css">
+</head>
+<body>
+  <div class="particles" id="particles"></div>
+
+  <!-- Screen 1: Welcome -->
+  <section class="screen active" id="screen-welcome">
+    <div class="glass-card welcome-card">
+      <div class="rings-icon">💍</div>
+      <h1 class="couple-names">Hoş Geldiniz!</h1>
+      <p class="wedding-subtitle">Bu özel günde bizimle olduğunuz için teşekkür ederiz</p>
+      <div class="table-badge">
+        <span class="table-label">Masa</span>
+        <span class="table-number" id="table-number">?</span>
+      </div>
+      <p class="welcome-desc">Düğünümüze ait en güzel anılarınızı bizimle paylaşın!<br>📸 5 adet fotoğraf veya video yükleyebilirsiniz.</p>
+      <button class="btn-primary" id="btn-start" onclick="goToSeatSelect()">
+        <span>Başlayalım</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- Screen 2: Seat Selection -->
+  <section class="screen" id="screen-seat">
+    <div class="glass-card seat-card">
+      <button class="btn-back" onclick="goToWelcome()">← Geri</button>
+      <div class="seat-icon">🪑</div>
+      <h2>Koltuğunuzu Seçin</h2>
+      <p class="seat-subtitle">Masa <strong id="seat-table-num">?</strong> — Hangi koltukta oturuyorsunuz?</p>
+      <div class="seat-grid" id="seat-grid"></div>
+    </div>
+  </section>
+
+  <!-- Screen 3: Guest Info -->
+  <section class="screen" id="screen-info">
+    <div class="glass-card info-card">
+      <button class="btn-back" onclick="goToSeatSelect()">← Geri</button>
+      <div class="info-icon">✨</div>
+      <h2>Kendinizi Tanıtın</h2>
+      <div class="selected-seat-badge" id="selected-seat-badge"></div>
+      <div class="form-group">
+        <label for="guest-name">Adınız <span class="required">*</span></label>
+        <input type="text" id="guest-name" placeholder="Adınızı yazın..." maxlength="50" required>
+        <span class="field-error" id="name-error">Lütfen adınızı girin</span>
+      </div>
+      <div class="form-group">
+        <label for="guest-message">Çifte Mesajınız</label>
+        <textarea id="guest-message" placeholder="Tebrik mesajınızı yazın..." maxlength="200" rows="3"></textarea>
+        <span class="char-count"><span id="msg-count">0</span>/200</span>
+      </div>
+      <button class="btn-primary" onclick="goToUpload()">
+        <span>Fotoğraf Yükle</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- Screen 4: Upload -->
+  <section class="screen" id="screen-upload">
+    <div class="glass-card upload-card">
+      <div class="upload-header">
+        <button class="btn-back" onclick="goToInfo()">← Geri</button>
+        <div class="remaining-badge">
+          <span class="remaining-icon">📸</span>
+          <span>Kalan: <strong id="remaining-count">5</strong></span>
+        </div>
+      </div>
+      <h2>Anılarınızı Paylaşın</h2>
+      <div class="upload-zone" id="upload-zone">
+        <div class="upload-zone-content">
+          <div class="upload-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          </div>
+          <p class="upload-text">Fotoğraf veya video seçin</p>
+          <p class="upload-hint">veya sürükleyip bırakın</p>
+          <div class="upload-buttons">
+            <label class="btn-upload" id="btn-camera-label">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              <span>Kamera</span>
+              <input type="file" id="input-camera" accept="image/*,video/*" capture="environment" hidden>
+            </label>
+            <label class="btn-upload">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+              <span>Galeri</span>
+              <input type="file" id="input-gallery" accept="image/*,video/*" multiple hidden>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="preview-area" id="preview-area"></div>
+      <div class="upload-progress" id="upload-progress" style="display:none;">
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        <p class="progress-text" id="progress-text">Yükleniyor...</p>
+      </div>
+      <button class="btn-primary btn-finish" id="btn-finish" onclick="finishUploading()" style="display:none;">
+        <span>Tamamla</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- Screen 5: Thank You -->
+  <section class="screen" id="screen-thanks">
+    <div class="glass-card thanks-card">
+      <div class="thanks-icon">💝</div>
+      <h2>Teşekkürler!</h2>
+      <p class="thanks-text">Paylaştığınız anılar bizim için çok değerli.<br>Bu güzel gecenin tadını çıkarın! 🥂</p>
+      <div class="uploaded-count-badge">
+        <span id="final-count">0</span> dosya yüklendi
+      </div>
+      <div class="confetti-container" id="confetti"></div>
+    </div>
+  </section>
+
+  <script src="/guest.js"></script>
+</body>
+</html>

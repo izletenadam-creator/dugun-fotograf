@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🖨️ QR Kodlar — Düğün</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold: #d4a853;
+      --gold-light: #f0d48a;
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-body: 'Inter', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-body);
+      background: #0a0a1a;
+      color: #f5f0e8;
+      padding: 20px;
+    }
+
+    .controls {
+      max-width: 600px; margin: 0 auto 30px; text-align: center;
+    }
+    .controls h1 {
+      font-family: var(--font-display); font-size: 1.8rem;
+      color: var(--gold-light); margin-bottom: 16px;
+    }
+    .controls p { color: rgba(245,240,232,0.6); font-size: 0.85rem; margin-bottom: 20px; }
+
+    .base-url-form {
+      display: flex; gap: 8px; margin-bottom: 16px;
+      background: rgba(255,255,255,0.06); border-radius: 12px; padding: 8px;
+    }
+    .base-url-form input {
+      flex: 1; background: transparent; border: none; color: #f5f0e8;
+      font-size: 0.9rem; padding: 8px 12px; outline: none; font-family: var(--font-body);
+    }
+    .base-url-form button {
+      background: linear-gradient(135deg, var(--gold), #b8922e);
+      color: #0a0a1a; border: none; border-radius: 8px; padding: 8px 20px;
+      font-weight: 600; cursor: pointer; font-family: var(--font-body); font-size: 0.85rem;
+    }
+
+    .btn-print {
+      background: linear-gradient(135deg, var(--gold), #b8922e);
+      color: #0a0a1a; border: none; border-radius: 50px; padding: 12px 32px;
+      font-size: 1rem; font-weight: 600; cursor: pointer; font-family: var(--font-body);
+      margin-bottom: 8px;
+    }
+    .btn-print:hover { box-shadow: 0 4px 16px rgba(212,168,83,0.4); }
+
+    .qr-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 20px; max-width: 1200px; margin: 0 auto;
+    }
+    .qr-card {
+      background: white; border-radius: 16px; padding: 24px;
+      text-align: center; color: #1a1a2e;
+    }
+    .qr-card img { width: 180px; height: 180px; margin-bottom: 12px; }
+    .qr-table-num {
+      font-family: var(--font-display); font-size: 1.4rem; font-weight: 700;
+      color: #1a1a2e; margin-bottom: 4px;
+    }
+    .qr-instruction {
+      font-size: 0.75rem; color: #666; line-height: 1.4;
+    }
+    .qr-url { font-size: 0.6rem; color: #999; margin-top: 8px; word-break: break-all; }
+
+    .loading { text-align: center; padding: 60px; color: var(--gold); font-size: 1.1rem; }
+
+    /* Print styles */
+    @media print {
+      body { background: white; color: black; padding: 0; }
+      .controls { display: none; }
+      .qr-grid {
+        grid-template-columns: repeat(3, 1fr); gap: 10px;
+      }
+      .qr-card {
+        break-inside: avoid; page-break-inside: avoid;
+        border: 1px solid #ddd; border-radius: 8px; padding: 16px;
+      }
+      .qr-card img { width: 150px; height: 150px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <h1>💒 QR Kodları Oluştur</h1>
+    <p>Masalara yapıştırmak için QR kodları yazdırın. Her QR kod ilgili masanın fotoğraf yükleme sayfasına yönlendirir.</p>
+    <div class="base-url-form">
+      <input type="text" id="base-url" placeholder="Base URL (örn: https://sizin-adresiniz.com)">
+      <button onclick="generateQRs()">Oluştur</button>
+    </div>
+    <button class="btn-print" onclick="window.print()">🖨️ Yazdır</button>
+  </div>
+
+  <div class="qr-grid" id="qr-grid">
+    <div class="loading" id="loading">QR kodlar yükleniyor...</div>
+  </div>
+
+  <script>
+    const grid = document.getElementById('qr-grid');
+    const baseUrlInput = document.getElementById('base-url');
+
+    // Set default base URL
+    baseUrlInput.value = window.location.origin;
+
+    // Auto-generate on load
+    generateQRs();
+
+    async function generateQRs() {
+      const baseUrl = baseUrlInput.value.trim() || window.location.origin;
+      grid.innerHTML = '<div class="loading">QR kodlar oluşturuluyor...</div>';
+
+      try {
+        const res = await fetch(`/api/admin/qr-codes?baseUrl=${encodeURIComponent(baseUrl)}`);
+        const qrCodes = await res.json();
+
+        grid.innerHTML = '';
+        qrCodes.forEach(qr => {
+          const card = document.createElement('div');
+          card.className = 'qr-card';
+          card.innerHTML = `
+            <img src="${qr.qrDataUrl}" alt="Masa ${qr.tableNumber} QR">
+            <div class="qr-table-num">Masa ${qr.tableNumber}</div>
+            <div class="qr-instruction">📸 QR'ı okut, anılarını paylaş!</div>
+            <div class="qr-url">${qr.url}</div>
+          `;
+          grid.appendChild(card);
+        });
+      } catch (e) {
+        grid.innerHTML = '<div class="loading">Hata oluştu! Sunucu çalışıyor mu?</div>';
+        console.error('QR generate error:', e);
+      }
+    }
+  </script>
+</body>
+</html>
