@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🖨️ QR Kodlar — Düğün</title>
+  <title>🖨️ QR Kodlar — Sinem & Metecan</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -67,8 +67,9 @@
       color: #1a1a2e; margin-bottom: 4px;
     }
     .qr-instruction {
-      font-size: 0.75rem; color: #666; line-height: 1.4;
+      font-size: 0.75rem; color: #555; line-height: 1.4; margin: 8px 0;
     }
+    .qr-instruction strong { color: #1a1a2e; font-size: 0.85rem; }
     .qr-url { font-size: 0.6rem; color: #999; margin-top: 8px; word-break: break-all; }
 
     .loading { text-align: center; padding: 60px; color: var(--gold); font-size: 1.1rem; }
@@ -90,7 +91,7 @@
 </head>
 <body>
   <div class="controls">
-    <h1>💒 QR Kodları Oluştur</h1>
+    <h1>💒 Sinem & Metecan Düğünü</h1>
     <p>Masalara yapıştırmak için QR kodları yazdırın. Her QR kod ilgili masanın fotoğraf yükleme sayfasına yönlendirir.</p>
     <div class="base-url-form">
       <input type="text" id="base-url" placeholder="Base URL (örn: https://sizin-adresiniz.com)">
@@ -107,14 +108,14 @@
     const grid = document.getElementById('qr-grid');
     const baseUrlInput = document.getElementById('base-url');
 
-    // Set default base URL
-    baseUrlInput.value = window.location.origin;
+    // Set default base URL to the live Render app
+    baseUrlInput.value = 'https://dugun-fotograf.onrender.com';
 
     // Auto-generate on load
     generateQRs();
 
     async function generateQRs() {
-      const baseUrl = baseUrlInput.value.trim() || window.location.origin;
+      const baseUrl = baseUrlInput.value.trim() || 'https://dugun-fotograf.onrender.com';
       grid.innerHTML = '<div class="loading">QR kodlar oluşturuluyor...</div>';
 
       try {
@@ -128,7 +129,11 @@
           card.innerHTML = `
             <img src="${qr.qrDataUrl}" alt="Masa ${qr.tableNumber} QR">
             <div class="qr-table-num">Masa ${qr.tableNumber}</div>
-            <div class="qr-instruction">📸 QR'ı okut, anılarını paylaş!</div>
+            <div class="qr-instruction">
+              <strong>📸 Gecemizin Paparazzisi Ol!</strong><br>
+              En güzel anlarımızı ölümsüzleştirmek için desteğine ihtiyacımız var.<br>
+              QR'ı okut ve bizimle paylaş! ✨
+            </div>
             <div class="qr-url">${qr.url}</div>
           `;
           grid.appendChild(card);
