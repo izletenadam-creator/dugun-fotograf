@@ -77,7 +77,7 @@ async function loadStats() {
 function buildTableFilters(perTable) {
   const scroll = document.getElementById('filter-scroll');
   scroll.innerHTML = '';
-  for (let i = 1; i <= 25; i++) {
+  for (let i = 1; i <= 40; i++) {
     const tableData = perTable.find(t => t.table_number === i);
     const count = tableData ? tableData.count : 0;
     const btn = document.createElement('button');

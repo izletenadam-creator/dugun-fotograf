@@ -86,7 +86,18 @@
         border: 1px solid #ddd; border-radius: 8px; padding: 16px;
       }
       .qr-card img { width: 150px; height: 150px; }
+      .btn-download-qr { display: none !important; }
     }
+
+    /* Download button */
+    .btn-download-qr {
+      display: inline-block; margin-top: 12px;
+      background: rgba(212,168,83,0.1); border: 1px solid var(--gold);
+      color: #1a1a2e; text-decoration: none; border-radius: 6px;
+      padding: 6px 14px; font-size: 0.8rem; font-weight: 600;
+      transition: all 0.3s;
+    }
+    .btn-download-qr:hover { background: var(--gold); color: white; }
   </style>
 </head>
 <body>
@@ -135,6 +146,7 @@
               QR'ı okut ve bizimle paylaş! ✨
             </div>
             <div class="qr-url">${qr.url}</div>
+            <a href="${qr.qrDataUrl}" download="Masa-${qr.tableNumber}-QR.png" class="btn-download-qr">⬇️ İndir</a>
           `;
           grid.appendChild(card);
         });

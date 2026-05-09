@@ -12,7 +12,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASS || 'dugun2026';
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
-const TOTAL_TABLES = 25;
+const TOTAL_TABLES = 40;
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, 'uploads');
