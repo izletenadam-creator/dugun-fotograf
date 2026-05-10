@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <style>
     :root {
       --gold: #d4a853;
@@ -52,6 +53,8 @@
       margin-bottom: 8px;
     }
     .btn-print:hover { box-shadow: 0 4px 16px rgba(212,168,83,0.4); }
+    .btn-zip { background: #1a1a2e; color: var(--gold); border: 1px solid var(--gold); margin-left: 10px; }
+    .btn-zip:hover { background: var(--gold); color: #1a1a2e; }
 
     .qr-grid {
       display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -108,7 +111,10 @@
       <input type="text" id="base-url" placeholder="Base URL (örn: https://sizin-adresiniz.com)">
       <button onclick="generateQRs()">Oluştur</button>
     </div>
-    <button class="btn-print" onclick="window.print()">🖨️ Yazdır</button>
+    <div>
+      <button class="btn-print" onclick="window.print()">🖨️ Yazdır</button>
+      <button class="btn-print btn-zip" onclick="downloadAllQRs()">📦 Hepsini İndir (ZIP)</button>
+    </div>
   </div>
 
   <div class="qr-grid" id="qr-grid">
@@ -132,6 +138,7 @@
       try {
         const res = await fetch(`/api/admin/qr-codes?baseUrl=${encodeURIComponent(baseUrl)}`);
         const qrCodes = await res.json();
+        window.currentQRs = qrCodes;
 
         grid.innerHTML = '';
         qrCodes.forEach(qr => {
@@ -154,6 +161,31 @@
         grid.innerHTML = '<div class="loading">Hata oluştu! Sunucu çalışıyor mu?</div>';
         console.error('QR generate error:', e);
       }
+    }
+
+    async function downloadAllQRs() {
+      if (!window.currentQRs || window.currentQRs.length === 0) return alert('Önce QR kodları oluşturun.');
+      const btn = document.querySelector('.btn-zip');
+      btn.innerText = '⏳ Hazırlanıyor...';
+      
+      try {
+        const zip = new JSZip();
+        window.currentQRs.forEach(qr => {
+          const base64Data = qr.qrDataUrl.replace(/^data:image\/(png|jpeg|jpg);base64,/, "");
+          zip.file(`Masa-${qr.tableNumber}-QR.png`, base64Data, {base64: true});
+        });
+        
+        const content = await zip.generateAsync({type:"blob"});
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(content);
+        link.download = "Dugun-QR-Kodlari.zip";
+        link.click();
+      } catch (e) {
+        console.error('ZIP error:', e);
+        alert('İndirilirken bir hata oluştu.');
+      }
+      
+      btn.innerText = '📦 Hepsini İndir (ZIP)';
     }
   </script>
 </body>
