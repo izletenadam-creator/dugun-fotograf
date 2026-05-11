@@ -5,11 +5,12 @@ let sessionId = null;
 let uploadedCount = 0;
 let maxUploads = 5;
 let isUploading = false;
-const SEATS_PER_TABLE = 10;
+let seatsPerZone = 10;
+let appConfig = null;
 
 // ============ Init ============
-document.addEventListener('DOMContentLoaded', () => {
-  // Get table number from URL
+document.addEventListener('DOMContentLoaded', async () => {
+  // Get zone number from URL (/masa/:number)
   const pathParts = window.location.pathname.split('/');
   const masaIdx = pathParts.indexOf('masa');
   if (masaIdx !== -1 && pathParts[masaIdx + 1]) {
@@ -20,6 +21,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   document.getElementById('table-number').textContent = tableNumber;
   document.getElementById('seat-table-num').textContent = tableNumber;
+
+  // Fetch config from server
+  try {
+    const res = await fetch('/api/config');
+    appConfig = await res.json();
+    applyConfig(appConfig);
+  } catch (e) {
+    console.error('Config fetch error:', e);
+  }
 
   // Build seat grid
   buildSeatGrid();
@@ -43,22 +53,86 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// ============ Apply Config ============
+function applyConfig(cfg) {
+  if (!cfg) return;
+
+  const labels = cfg.labels || {};
+  maxUploads = cfg.maxUploads || 5;
+  seatsPerZone = cfg.seatsPerZone || 10;
+
+  // Page title
+  document.title = `${labels.icon || ''} ${cfg.eventName}`.trim();
+
+  // Welcome screen
+  const eventIcon = document.getElementById('event-icon');
+  if (eventIcon) eventIcon.textContent = labels.emoji || labels.icon || '';
+
+  const eventName = document.getElementById('event-name');
+  if (eventName) eventName.textContent = cfg.eventName;
+
+  const welcomeText = document.getElementById('welcome-text');
+  if (welcomeText) welcomeText.textContent = labels.welcome || 'Hoş geldiniz!';
+
+  const welcomeDesc = document.getElementById('welcome-desc');
+  if (welcomeDesc) {
+    welcomeDesc.innerHTML = `Anılarınızı bizimle paylaşın!<br>📸 ${maxUploads} adet fotoğraf veya video yükleyebilirsiniz.`;
+  }
+
+  // Zone/seat labels
+  const zoneLabels = document.querySelectorAll('#zone-label, #zone-label-2');
+  zoneLabels.forEach(el => { el.textContent = labels.zone || 'Masa'; });
+
+  // Seat screen
+  const seatTitle = document.getElementById('seat-title');
+  if (seatTitle) seatTitle.textContent = `${labels.seat || 'Yer'}inizi Seçin`;
+
+  const seatPrompt = document.getElementById('seat-prompt');
+  if (seatPrompt) seatPrompt.textContent = `Hangi ${(labels.seat || 'yer').toLowerCase()}te oturuyorsunuz?`;
+
+  const seatEmoji = document.getElementById('seat-emoji');
+  if (seatEmoji) seatEmoji.textContent = labels.zone === 'Bölge' ? '📍' : '🪑';
+
+  // Thanks screen
+  const thanksEmoji = document.getElementById('thanks-emoji');
+  if (thanksEmoji) thanksEmoji.textContent = labels.emoji || '✨';
+
+  const thanksText = document.getElementById('thanks-text');
+  if (thanksText) thanksText.textContent = labels.thanks || 'Paylaştığınız anılar bizim için çok değerli.';
+
+  // Remaining count
+  document.getElementById('remaining-count').textContent = maxUploads;
+
+  // Branding colors
+  if (cfg.primaryColor) {
+    document.documentElement.style.setProperty('--gold', cfg.primaryColor);
+  }
+  if (cfg.secondaryColor) {
+    document.documentElement.style.setProperty('--bg-primary', cfg.secondaryColor);
+  }
+
+  // Rebuild seat grid with correct count
+  buildSeatGrid();
+}
+
 // ============ Seat Grid ============
 function buildSeatGrid() {
   const grid = document.getElementById('seat-grid');
   grid.innerHTML = '';
 
-  for (let i = 1; i <= SEATS_PER_TABLE; i++) {
+  const seatLabel = (appConfig && appConfig.labels && appConfig.labels.seat) || 'Koltuk';
+
+  for (let i = 1; i <= seatsPerZone; i++) {
     const btn = document.createElement('button');
     btn.className = 'seat-btn';
     btn.dataset.seat = i;
     btn.innerHTML = `
       <span class="seat-num">${i}</span>
-      <span class="seat-label">Koltuk</span>
+      <span class="seat-label">${seatLabel}</span>
     `;
 
     // Check if this seat is already taken (in localStorage)
-    const existingSession = localStorage.getItem(`wedding_t${tableNumber}_s${i}`);
+    const existingSession = localStorage.getItem(`event_t${tableNumber}_s${i}`);
     if (existingSession) {
       btn.classList.add('taken');
     }
@@ -71,7 +145,7 @@ function buildSeatGrid() {
 function selectSeat(num, btn) {
   if (btn.classList.contains('taken')) {
     // If this seat was taken by the current device, allow re-entry
-    const existingSession = localStorage.getItem(`wedding_t${tableNumber}_s${num}`);
+    const existingSession = localStorage.getItem(`event_t${tableNumber}_s${num}`);
     if (existingSession) {
       seatNumber = num;
       sessionId = existingSession;
@@ -88,7 +162,7 @@ function selectSeat(num, btn) {
 
   // Create session for this seat
   sessionId = generateUUID();
-  localStorage.setItem(`wedding_t${tableNumber}_s${num}`, sessionId);
+  localStorage.setItem(`event_t${tableNumber}_s${num}`, sessionId);
 
   // Short delay then go to info
   setTimeout(() => goToInfo(), 300);
@@ -127,20 +201,20 @@ function showScreen(screenId) {
 function goToWelcome() { showScreen('screen-welcome'); }
 
 function goToSeatSelect() {
-  buildSeatGrid(); // Refresh taken status
+  buildSeatGrid();
   showScreen('screen-seat');
 }
 
 function goToInfo() {
   if (!seatNumber) return;
 
-  // Update badge
+  const zoneLabel = (appConfig && appConfig.labels && appConfig.labels.zone) || 'Masa';
+  const seatLabel = (appConfig && appConfig.labels && appConfig.labels.seat) || 'Koltuk';
+
   document.getElementById('selected-seat-badge').textContent =
-    `Masa ${tableNumber} — Koltuk ${seatNumber}`;
+    `${zoneLabel} ${tableNumber} — ${seatLabel} ${seatNumber}`;
 
-  // Init session
   initSession();
-
   showScreen('screen-info');
 }
 
@@ -149,7 +223,6 @@ async function goToUpload() {
   const name = nameInput.value.trim();
   const message = document.getElementById('guest-message').value.trim();
 
-  // Name is required
   if (!name) {
     nameInput.classList.add('error');
     document.getElementById('name-error').classList.add('visible');
@@ -159,7 +232,6 @@ async function goToUpload() {
   nameInput.classList.remove('error');
   document.getElementById('name-error').classList.remove('visible');
 
-  // Update session with guest info
   try {
     await fetch('/api/session', {
       method: 'POST',
@@ -174,10 +246,6 @@ async function goToUpload() {
   }
 
   showScreen('screen-upload');
-}
-
-function goToInfoFromUpload() {
-  showScreen('screen-info');
 }
 
 function finishUploading() {
@@ -273,7 +341,7 @@ async function processFiles(files) {
     progressFill.style.width = `${((i + 1) / validFiles.length) * 100}%`;
   }
 
-  progressText.textContent = 'Tamamlandı! ✅';
+  progressText.textContent = 'Tamamlandı!';
   isUploading = false;
 
   const remaining2 = maxUploads - uploadedCount;
@@ -356,7 +424,8 @@ function createParticles() {
 function launchConfetti() {
   const container = document.getElementById('confetti');
   container.innerHTML = '';
-  const colors = ['#d4a853', '#f0d48a', '#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff', '#ff8fab'];
+  const primaryColor = (appConfig && appConfig.primaryColor) || '#d4a853';
+  const colors = [primaryColor, '#f0d48a', '#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff', '#ff8fab'];
   for (let i = 0; i < 50; i++) {
     const piece = document.createElement('div');
     piece.className = 'confetti-piece';

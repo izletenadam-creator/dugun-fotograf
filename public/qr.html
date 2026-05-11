@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🖨️ QR Kodlar — Sinem & Metecan</title>
+  <title>QR Kodlar</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -77,7 +77,6 @@
 
     .loading { text-align: center; padding: 60px; color: var(--gold); font-size: 1.1rem; }
 
-    /* Print styles */
     @media print {
       body { background: white; color: black; padding: 0; }
       .controls { display: none; }
@@ -92,7 +91,6 @@
       .btn-download-qr { display: none !important; }
     }
 
-    /* Download button */
     .btn-download-qr {
       display: inline-block; margin-top: 12px;
       background: rgba(212,168,83,0.1); border: 1px solid var(--gold);
@@ -105,15 +103,15 @@
 </head>
 <body>
   <div class="controls">
-    <h1>💒 Sinem & Metecan Düğünü</h1>
-    <p>Masalara yapıştırmak için QR kodları yazdırın. Her QR kod ilgili masanın fotoğraf yükleme sayfasına yönlendirir.</p>
+    <h1 id="qr-title">QR Kodlar</h1>
+    <p id="qr-desc">QR kodları yazdırıp ilgili alanlara yapıştırın. Her QR kod misafirin fotoğraf yükleme sayfasına yönlendirir.</p>
     <div class="base-url-form">
       <input type="text" id="base-url" placeholder="Base URL (örn: https://sizin-adresiniz.com)">
       <button onclick="generateQRs()">Oluştur</button>
     </div>
     <div>
-      <button class="btn-print" onclick="window.print()">🖨️ Yazdır</button>
-      <button class="btn-print btn-zip" onclick="downloadAllQRs()">📦 Hepsini İndir (ZIP)</button>
+      <button class="btn-print" onclick="window.print()">&#128424; Yazdır</button>
+      <button class="btn-print btn-zip" onclick="downloadAllQRs()">&#128230; Hepsini İndir (ZIP)</button>
     </div>
   </div>
 
@@ -124,16 +122,39 @@
   <script>
     const grid = document.getElementById('qr-grid');
     const baseUrlInput = document.getElementById('base-url');
+    let qrConfig = null;
 
-    // Set default base URL to the live Render app
-    baseUrlInput.value = 'https://dugun-fotograf.onrender.com';
+    // Set default base URL
+    baseUrlInput.value = window.location.origin;
 
-    // Auto-generate on load
-    generateQRs();
+    // Fetch config then generate
+    (async function init() {
+      try {
+        const res = await fetch('/api/config');
+        qrConfig = await res.json();
+        applyQRConfig(qrConfig);
+      } catch (e) {
+        console.error('Config fetch error:', e);
+      }
+      generateQRs();
+    })();
+
+    function applyQRConfig(cfg) {
+      if (!cfg) return;
+      const labels = cfg.labels || {};
+      document.title = `QR Kodlar — ${cfg.eventName}`;
+      document.getElementById('qr-title').textContent = `${labels.icon || ''} ${cfg.eventName}`.trim();
+      document.getElementById('qr-desc').textContent =
+        `${labels.zone || 'Masa'}lara yapıştırmak için QR kodları yazdırın. Her QR kod misafirin fotoğraf yükleme sayfasına yönlendirir.`;
+    }
 
     async function generateQRs() {
-      const baseUrl = baseUrlInput.value.trim() || 'https://dugun-fotograf.onrender.com';
+      const baseUrl = baseUrlInput.value.trim() || window.location.origin;
       grid.innerHTML = '<div class="loading">QR kodlar oluşturuluyor...</div>';
+
+      const zoneLabel = (qrConfig && qrConfig.labels && qrConfig.labels.zone) || 'Masa';
+      const eventName = (qrConfig && qrConfig.eventName) || 'Etkinlik';
+      const eventIcon = (qrConfig && qrConfig.labels && qrConfig.labels.icon) || '';
 
       try {
         const res = await fetch(`/api/admin/qr-codes?baseUrl=${encodeURIComponent(baseUrl)}`);
@@ -145,15 +166,15 @@
           const card = document.createElement('div');
           card.className = 'qr-card';
           card.innerHTML = `
-            <img src="${qr.qrDataUrl}" alt="Masa ${qr.tableNumber} QR">
-            <div class="qr-table-num">Masa ${qr.tableNumber}</div>
+            <img src="${qr.qrDataUrl}" alt="${zoneLabel} ${qr.zoneNumber} QR">
+            <div class="qr-table-num">${zoneLabel} ${qr.zoneNumber}</div>
             <div class="qr-instruction">
-              <strong>📸 Gecemizin Paparazzisi Ol!</strong><br>
-              En güzel anlarımızı ölümsüzleştirmek için desteğine ihtiyacımız var.<br>
+              <strong>📸 Anılarınızı Paylaşın!</strong><br>
+              En güzel anları ölümsüzleştirmek için desteğine ihtiyacımız var.<br>
               QR'ı okut ve bizimle paylaş! ✨
             </div>
             <div class="qr-url">${qr.url}</div>
-            <a href="${qr.qrDataUrl}" download="Masa-${qr.tableNumber}-QR.png" class="btn-download-qr">⬇️ İndir</a>
+            <a href="${qr.qrDataUrl}" download="${zoneLabel}-${qr.zoneNumber}-QR.png" class="btn-download-qr">&#11015;&#65039; İndir</a>
           `;
           grid.appendChild(card);
         });
@@ -167,24 +188,26 @@
       if (!window.currentQRs || window.currentQRs.length === 0) return alert('Önce QR kodları oluşturun.');
       const btn = document.querySelector('.btn-zip');
       btn.innerText = '⏳ Hazırlanıyor...';
-      
+
+      const zoneLabel = (qrConfig && qrConfig.labels && qrConfig.labels.zone) || 'Masa';
+
       try {
         const zip = new JSZip();
         window.currentQRs.forEach(qr => {
           const base64Data = qr.qrDataUrl.replace(/^data:image\/(png|jpeg|jpg);base64,/, "");
-          zip.file(`Masa-${qr.tableNumber}-QR.png`, base64Data, {base64: true});
+          zip.file(`${zoneLabel}-${qr.zoneNumber}-QR.png`, base64Data, {base64: true});
         });
-        
+
         const content = await zip.generateAsync({type:"blob"});
         const link = document.createElement('a');
         link.href = URL.createObjectURL(content);
-        link.download = "Dugun-QR-Kodlari.zip";
+        link.download = "QR-Kodlari.zip";
         link.click();
       } catch (e) {
         console.error('ZIP error:', e);
         alert('İndirilirken bir hata oluştu.');
       }
-      
+
       btn.innerText = '📦 Hepsini İndir (ZIP)';
     }
   </script>

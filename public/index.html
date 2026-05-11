@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content="Sinem & Metecan düğün anılarınızı paylaşın!">
+  <meta name="description" content="Etkinlik anılarınızı paylaşın — QR ile fotoğraf ve video yükleyin">
   <meta name="theme-color" content="#0a0a1a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>💒 Sinem & Metecan Düğün Anıları</title>
+  <title>Etkinlik Hatira</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -19,14 +19,14 @@
   <!-- Screen 1: Welcome -->
   <section class="screen active" id="screen-welcome">
     <div class="glass-card welcome-card">
-      <div class="rings-icon">💍</div>
-      <h1 class="couple-names">Sinem & Metecan</h1>
-      <p class="wedding-subtitle">Bu özel günümüzde bizimle olduğunuz için teşekkür ederiz</p>
+      <div class="rings-icon" id="event-icon"></div>
+      <h1 class="couple-names" id="event-name">Etkinlik</h1>
+      <p class="wedding-subtitle" id="welcome-text">Hoş geldiniz!</p>
       <div class="table-badge">
-        <span class="table-label">Masa</span>
+        <span class="table-label" id="zone-label">Masa</span>
         <span class="table-number" id="table-number">?</span>
       </div>
-      <p class="welcome-desc">Düğünümüze ait en güzel anılarınızı bizimle paylaşın!<br>📸 5 adet fotoğraf veya video yükleyebilirsiniz.</p>
+      <p class="welcome-desc" id="welcome-desc">En güzel anılarınızı bizimle paylaşın!<br>Fotoğraf veya video yükleyebilirsiniz.</p>
       <button class="btn-primary" id="btn-start" onclick="goToSeatSelect()">
         <span>Başlayalım</span>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -37,10 +37,10 @@
   <!-- Screen 2: Seat Selection -->
   <section class="screen" id="screen-seat">
     <div class="glass-card seat-card">
-      <button class="btn-back" onclick="goToWelcome()">← Geri</button>
-      <div class="seat-icon">🪑</div>
-      <h2>Koltuğunuzu Seçin</h2>
-      <p class="seat-subtitle">Masa <strong id="seat-table-num">?</strong> — Hangi koltukta oturuyorsunuz?</p>
+      <button class="btn-back" onclick="goToWelcome()">&#8592; Geri</button>
+      <div class="seat-icon" id="seat-emoji"></div>
+      <h2 id="seat-title">Yerinizi Seçin</h2>
+      <p class="seat-subtitle"><span id="zone-label-2">Masa</span> <strong id="seat-table-num">?</strong> — <span id="seat-prompt">Hangi koltukta oturuyorsunuz?</span></p>
       <div class="seat-grid" id="seat-grid"></div>
     </div>
   </section>
@@ -48,7 +48,7 @@
   <!-- Screen 3: Guest Info -->
   <section class="screen" id="screen-info">
     <div class="glass-card info-card">
-      <button class="btn-back" onclick="goToSeatSelect()">← Geri</button>
+      <button class="btn-back" onclick="goToSeatSelect()">&#8592; Geri</button>
       <div class="info-icon">✨</div>
       <h2>Kendinizi Tanıtın</h2>
       <div class="selected-seat-badge" id="selected-seat-badge"></div>
@@ -58,8 +58,8 @@
         <span class="field-error" id="name-error">Lütfen adınızı girin</span>
       </div>
       <div class="form-group">
-        <label for="guest-message">Çifte Mesajınız</label>
-        <textarea id="guest-message" placeholder="Tebrik mesajınızı yazın..." maxlength="200" rows="3"></textarea>
+        <label for="guest-message" id="message-label">Mesajınız</label>
+        <textarea id="guest-message" placeholder="Mesajınızı yazın..." maxlength="200" rows="3"></textarea>
         <span class="char-count"><span id="msg-count">0</span>/200</span>
       </div>
       <button class="btn-primary" onclick="goToUpload()">
@@ -73,7 +73,7 @@
   <section class="screen" id="screen-upload">
     <div class="glass-card upload-card">
       <div class="upload-header">
-        <button class="btn-back" onclick="goToInfo()">← Geri</button>
+        <button class="btn-back" onclick="goToInfo()">&#8592; Geri</button>
         <div class="remaining-badge">
           <span class="remaining-icon">📸</span>
           <span>Kalan: <strong id="remaining-count">5</strong></span>
@@ -116,9 +116,9 @@
   <!-- Screen 5: Thank You -->
   <section class="screen" id="screen-thanks">
     <div class="glass-card thanks-card">
-      <div class="thanks-icon">💝</div>
+      <div class="thanks-icon" id="thanks-emoji">✨</div>
       <h2>Teşekkürler!</h2>
-      <p class="thanks-text">Paylaştığınız anılar bizim için çok değerli.<br>Bu güzel gecenin tadını çıkarın! 🥂</p>
+      <p class="thanks-text" id="thanks-text">Paylaştığınız anılar bizim için çok değerli.</p>
       <div class="uploaded-count-badge">
         <span id="final-count">0</span> dosya yüklendi
       </div>

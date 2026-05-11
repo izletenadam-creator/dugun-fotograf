@@ -2,6 +2,38 @@ let isAuthenticated = false;
 let allUploads = [];
 let currentFilter = 'all';
 let pollInterval = null;
+let adminConfig = null;
+
+// ============ Init: Fetch config ============
+(async function initAdmin() {
+  try {
+    const res = await fetch('/api/config');
+    adminConfig = await res.json();
+    applyAdminConfig(adminConfig);
+  } catch (e) {
+    console.error('Config fetch error:', e);
+  }
+})();
+
+function applyAdminConfig(cfg) {
+  if (!cfg) return;
+  const labels = cfg.labels || {};
+
+  // Page title
+  document.title = `Admin — ${cfg.eventName}`;
+
+  // Dashboard title
+  const dashTitle = document.getElementById('dash-title');
+  if (dashTitle) dashTitle.textContent = `${labels.icon || ''} ${cfg.eventName}`.trim();
+
+  // Login subtitle
+  const loginSub = document.getElementById('login-subtitle');
+  if (loginSub) loginSub.textContent = `${cfg.eventName} medyasını yönetin`;
+
+  // Zone label in stats
+  const zoneLabel = document.getElementById('stat-zone-label');
+  if (zoneLabel) zoneLabel.textContent = `Aktif ${labels.zone || 'Masa'}`;
+}
 
 // ============ Auth ============
 document.getElementById('admin-password').addEventListener('keydown', (e) => {
@@ -67,7 +99,6 @@ async function loadStats() {
     document.getElementById('stat-tables').textContent = stats.activeTables;
     document.getElementById('stat-guests').textContent = stats.totalSessions;
 
-    // Update table filter buttons
     buildTableFilters(stats.perTable);
   } catch (e) {
     console.error('Stats error:', e);
@@ -77,13 +108,17 @@ async function loadStats() {
 function buildTableFilters(perTable) {
   const scroll = document.getElementById('filter-scroll');
   scroll.innerHTML = '';
-  for (let i = 1; i <= 40; i++) {
+
+  const totalZones = (adminConfig && adminConfig.totalZones) || 20;
+  const zoneLabel = (adminConfig && adminConfig.labels && adminConfig.labels.zone) || 'Masa';
+
+  for (let i = 1; i <= totalZones; i++) {
     const tableData = perTable.find(t => t.table_number === i);
     const count = tableData ? tableData.count : 0;
     const btn = document.createElement('button');
     btn.className = 'filter-btn' + (currentFilter === String(i) ? ' active' : '');
     btn.dataset.table = i;
-    btn.textContent = `Masa ${i}` + (count > 0 ? ` (${count})` : '');
+    btn.textContent = `${zoneLabel} ${i}` + (count > 0 ? ` (${count})` : '');
     btn.onclick = () => filterTable(String(i), btn);
     if (count > 0) {
       btn.style.borderColor = 'rgba(212,168,83,0.2)';
@@ -112,6 +147,7 @@ function filterTable(table, btn) {
 function renderGallery() {
   const gallery = document.getElementById('gallery');
   const emptyEl = document.getElementById('gallery-empty');
+  const zoneLabel = (adminConfig && adminConfig.labels && adminConfig.labels.zone) || 'Masa';
 
   const filtered = currentFilter === 'all'
     ? allUploads
@@ -124,7 +160,6 @@ function renderGallery() {
     return;
   }
 
-  // Group by table
   const grouped = {};
   filtered.forEach(u => {
     if (!grouped[u.table_number]) grouped[u.table_number] = [];
@@ -139,7 +174,7 @@ function renderGallery() {
     const header = document.createElement('div');
     header.className = 'table-section-header';
     header.innerHTML = `
-      <span class="table-section-title">Masa ${tableNum}</span>
+      <span class="table-section-title">${zoneLabel} ${tableNum}</span>
       <span class="table-section-count">${grouped[tableNum].length} dosya</span>
     `;
     section.appendChild(header);
@@ -155,7 +190,7 @@ function renderGallery() {
         openLightbox(upload);
       };
 
-      const url = `/uploads/masa-${upload.table_number}/${upload.file_name}`;
+      const url = `/uploads/zona-${upload.table_number}/${upload.file_name}`;
       if (upload.file_type.startsWith('image/')) {
         item.innerHTML = `<img src="${url}" loading="lazy" alt="Fotoğraf">`;
       } else {
@@ -163,15 +198,14 @@ function renderGallery() {
           <div class="media-badge">🎬 Video</div>`;
       }
 
-      // Guest info overlay
       const guestInfo = [];
       if (upload.seat_number) guestInfo.push(`K${upload.seat_number}`);
       if (upload.guest_name) guestInfo.push(escapeHtml(upload.guest_name));
       if (guestInfo.length > 0) {
-        item.innerHTML += `<div class="media-guest">${guestInfo.join(' • ')}</div>`;
+        item.innerHTML += `<div class="media-guest">${guestInfo.join(' &bull; ')}</div>`;
       }
 
-      item.innerHTML += `<button class="media-delete" onclick="deleteUpload(event, ${upload.id})" title="Sil">✕</button>`;
+      item.innerHTML += `<button class="media-delete" onclick="deleteUpload(event, ${upload.id})" title="Sil">&#10005;</button>`;
       grid.appendChild(item);
     });
 
@@ -185,7 +219,9 @@ function openLightbox(upload) {
   const lightbox = document.getElementById('lightbox');
   const content = document.getElementById('lightbox-content');
   const info = document.getElementById('lightbox-info');
-  const url = `/uploads/masa-${upload.table_number}/${upload.file_name}`;
+  const url = `/uploads/zona-${upload.table_number}/${upload.file_name}`;
+  const zoneLabel = (adminConfig && adminConfig.labels && adminConfig.labels.zone) || 'Masa';
+  const seatLabel = (adminConfig && adminConfig.labels && adminConfig.labels.seat) || 'Koltuk';
 
   if (upload.file_type.startsWith('image/')) {
     content.innerHTML = `<img src="${url}" alt="Fotoğraf">`;
@@ -193,9 +229,9 @@ function openLightbox(upload) {
     content.innerHTML = `<video src="${url}" controls autoplay></video>`;
   }
 
-  let infoText = `Masa ${upload.table_number}`;
-  if (upload.seat_number) infoText += ` — Koltuk ${upload.seat_number}`;
-  if (upload.guest_name) infoText += ` • ${escapeHtml(upload.guest_name)}`;
+  let infoText = `${zoneLabel} ${upload.table_number}`;
+  if (upload.seat_number) infoText += ` — ${seatLabel} ${upload.seat_number}`;
+  if (upload.guest_name) infoText += ` &bull; ${escapeHtml(upload.guest_name)}`;
   if (upload.guest_message) infoText += `<br>"${escapeHtml(upload.guest_message)}"`;
   infoText += `<br><small>${new Date(upload.created_at).toLocaleString('tr-TR')}</small>`;
   info.innerHTML = infoText;
@@ -208,7 +244,6 @@ function closeLightbox(e) {
   if (e && e.target !== e.currentTarget && !e.target.classList.contains('lightbox-close')) return;
   document.getElementById('lightbox').style.display = 'none';
   document.body.style.overflow = '';
-  // Stop any playing videos
   const vid = document.querySelector('.lightbox-content video');
   if (vid) vid.pause();
 }
@@ -243,7 +278,7 @@ function downloadAll() {
 function startPolling() {
   pollInterval = setInterval(() => {
     if (isAuthenticated) loadDashboard();
-  }, 10000); // 10 second refresh
+  }, 10000);
 }
 
 function stopPolling() {

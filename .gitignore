@@ -1,0 +1,9 @@
+node_modules/
+uploads/
+.env
+event-data.json
+wedding-data.json
+*.log
+.vercel/
+.DS_Store
+Thumbs.db

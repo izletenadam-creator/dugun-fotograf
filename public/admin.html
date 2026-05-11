@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🔧 Sinem & Metecan — Düğün Paneli</title>
+  <title>Admin Paneli</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -13,9 +13,9 @@
   <!-- Login Screen -->
   <div class="login-overlay" id="login-overlay">
     <div class="login-card">
-      <div class="login-icon">🔐</div>
+      <div class="login-icon" id="login-icon">&#128274;</div>
       <h2>Admin Paneli</h2>
-      <p>Düğün fotoğraflarını yönetin</p>
+      <p id="login-subtitle">Etkinlik medyasını yönetin</p>
       <div class="login-form">
         <input type="password" id="admin-password" placeholder="Şifre girin..." autocomplete="off">
         <button class="btn-login" id="btn-login" onclick="login()">Giriş Yap</button>
@@ -28,12 +28,12 @@
   <div class="dashboard" id="dashboard" style="display:none;">
     <header class="dash-header">
       <div class="dash-header-left">
-        <h1>💒 Sinem & Metecan Düğünü</h1>
-        <span class="live-badge" id="live-badge">● Canlı</span>
+        <h1 id="dash-title">Etkinlik Paneli</h1>
+        <span class="live-badge" id="live-badge">&#9679; Canlı</span>
       </div>
       <div class="dash-header-right">
-        <a href="/qr.html" class="btn-header" target="_blank">🖨️ QR Kodlar</a>
-        <button class="btn-header btn-download" onclick="downloadAll()">📥 Tümünü İndir (ZIP)</button>
+        <a href="/qr.html" class="btn-header" target="_blank">&#128424; QR Kodlar</a>
+        <button class="btn-header btn-download" onclick="downloadAll()">&#128229; Tümünü İndir (ZIP)</button>
         <button class="btn-header btn-logout" onclick="logout()">Çıkış</button>
       </div>
     </header>
@@ -56,12 +56,12 @@
         <div class="stat-label">Toplam</div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon">🪑</div>
+        <div class="stat-icon" id="stat-zone-icon">🪑</div>
         <div class="stat-value" id="stat-tables">0</div>
-        <div class="stat-label">Aktif Masa</div>
+        <div class="stat-label" id="stat-zone-label">Aktif Masa</div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon">👥</div>
+        <div class="stat-icon">&#128101;</div>
         <div class="stat-value" id="stat-guests">0</div>
         <div class="stat-label">Misafir</div>
       </div>
@@ -77,14 +77,14 @@
     <div class="gallery" id="gallery">
       <div class="gallery-empty" id="gallery-empty">
         <p>Henüz yükleme yapılmadı</p>
-        <p class="gallery-empty-hint">Misafirler QR kodları okuttukça fotoğraflar burada görünecek</p>
+        <p class="gallery-empty-hint">Misafirler QR kodları okuttukça medya burada görünecek</p>
       </div>
     </div>
   </div>
 
   <!-- Lightbox -->
   <div class="lightbox" id="lightbox" style="display:none;" onclick="closeLightbox(event)">
-    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+    <button class="lightbox-close" onclick="closeLightbox()">&#10005;</button>
     <div class="lightbox-content" id="lightbox-content"></div>
     <div class="lightbox-info" id="lightbox-info"></div>
   </div>
